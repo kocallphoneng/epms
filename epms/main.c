@@ -838,7 +838,7 @@ Java_com_besl_nibss_epms_ISO8583_unpackEPMSISO8583Message(JNIEnv *env, jobject t
                         output = cJSON_Print(root);
                         cJSON_Delete(root);
 
-                        return NULL;
+                        // return NULL;
                     }
                 }
             }
