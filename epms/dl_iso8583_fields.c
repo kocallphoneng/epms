@@ -753,6 +753,7 @@ static DL_ERR VarLen_Put(DL_UINT8 iVarLenType,
 	case kDL_ISO8583_LLVAR:
 		iActLen %= 100;
 		*ioReqLen = iActLen;
+
 		sprintf((char *)Len, "%02d", iActLen);
 		*tmpPtr++ = Len[0];
 		*tmpPtr++ = Len[1]; // output_bcd_byte(iActLen/100);
@@ -767,17 +768,17 @@ static DL_ERR VarLen_Put(DL_UINT8 iVarLenType,
 		*tmpPtr++ = Len[2]; // output_bcd_byte(iActLen%100);
 		break;
 	case kDL_ISO8583_LLLLVAR:
-		// iActLen %= 10000;
-		// *ioReqLen = iActLen;
-		// *tmpPtr++ = output_bcd_byte(iActLen / 100);
-		// *tmpPtr++ = output_bcd_byte(iActLen % 100);
 		iActLen %= 10000;
 		*ioReqLen = iActLen;
+
 		sprintf((char *)Len, "%04d", iActLen);
 		*tmpPtr++ = Len[0];
 		*tmpPtr++ = Len[1]; // output_bcd_byte(iActLen/100);
 		*tmpPtr++ = Len[2]; // output_bcd_byte(iActLen%100);
 		*tmpPtr++ = Len[3]; // output_bcd_byte(iActLen%100);
+
+		//*tmpPtr++    = output_bcd_byte(iActLen/100);
+		//*tmpPtr++    = output_bcd_byte(iActLen%100);
 		break;
 	default:
 		/* [ERROR] unsupported length type */
@@ -804,7 +805,6 @@ static DL_ERR VarLen_Get(const DL_UINT8 **ioPtr,
 	DL_UINT8 *testPtr = NULL;
 	DL_UINT8 *testPtr2 = NULL;
 	DL_UINT8 *testPtr3 = NULL;
-	DL_UINT8 *testPtr4 = NULL;
 
 	/* init outputs */
 	*oLen = iMaxValue;
@@ -853,119 +853,121 @@ static DL_ERR VarLen_Get(const DL_UINT8 **ioPtr,
 			//	sprintf(myLen,"td %x",*testPtr2);
 			//	myPal.myPrint->PrintLine(myLen,&merr);
 
-			oLen = (((*tmpPtr) - 48) * 1000) + (((*testPtr) - 48) * 100) + (((*testPtr2) - 48) * 10) + ((*testPtr3) - 48);
+			*oLen = (((*tmpPtr) - 48) * 1000) + (((*testPtr) - 48) * 100) + (((*testPtr2) - 48) * 10) + ((*testPtr3) - 48);
 
 			//	sprintf(myLen,"tc %x",*oLen);
 			//	myPal.myPrint->PrintLine(myLen,&merr);
 			tmpPtr = testPtr3 + 1;
 		}
-		if (iVarLenDigits == 5)
-		{
-			//	sprintf(myLen,"tl %x",*tmpPtr);
-			//	myPal.myPrint->PrintLine(myLen,&merr);
-			testPtr = tmpPtr + 1;
-			testPtr2 = testPtr + 1;
-			testPtr3 = testPtr2 + 1;
-			testPtr4 = testPtr3 + 1;
-			//	sprintf(myLen,"td %x",*testPtr);
-			//	myPal.myPrint->PrintLine(myLen,&merr);
-			//	sprintf(myLen,"td %x",*testPtr2);
-			//	myPal.myPrint->PrintLine(myLen,&merr);
+		/*		if ( iVarLenDigits % 2 )
+					iVarLenDigits++;
 
-			*oLen = (((*tmpPtr) - 48) * 10000) + (((*testPtr) - 48) * 1000) + (((*testPtr2) - 48) * 100) + (((*testPtr3) - 48) * 10) + ((*testPtr4) - 48);
-		}
+				while ( iVarLenDigits > 0 )
+				{
+					*oLen += (*oLen * 100) +
+							 ((((int)(*tmpPtr) >> 4) & 0xf) * 10) +
+							 ((int)(*tmpPtr) & 0xf);
+					iVarLenDigits -= 2;
+					tmpPtr++;
+				}
+				sprintf(myLen,"bdfore%d",*oLen);
+				myPal.myPrint->PrintLine(myLen,&merr);
 
-		memset(myLen, 0x0, sizeof(myLen));
-		// sprintf(myLen,"%d",*oLen);
-		// myPal.myPrint->PrintLine(myLen,&merr);
-		*ioPtr = tmpPtr;
-
-		return err;
+				//limit if exceeds max*/
+		//*oLen = MIN(iMaxValue,*oLen);
 	}
 
-	// returns the bcd encoded value - based on decValue (0..99)
-	/*#define output_bcd_byte(decValue)\
-	 ((DL_UINT8)((((decValue)/10)<<4)|((decValue)%10)))
+	memset(myLen, 0x0, sizeof(myLen));
+	// sprintf(myLen,"%d",*oLen);
+	// myPal.myPrint->PrintLine(myLen,&merr);
+	*ioPtr = tmpPtr;
 
-	// outputs the variable length element
-	// iVarLenType - e.g. kDL_ISO8583_LLVAR
-	static DL_ERR VarLen_Put ( DL_UINT8    iVarLenType,
-							   DL_UINT32   iActLen,
-							   DL_UINT32  *ioReqLen,
-							   DL_UINT8  **ioPtr )
+	return err;
+}
+
+// returns the bcd encoded value - based on decValue (0..99)
+/*#define output_bcd_byte(decValue)\
+ ((DL_UINT8)((((decValue)/10)<<4)|((decValue)%10)))
+
+// outputs the variable length element
+// iVarLenType - e.g. kDL_ISO8583_LLVAR
+static DL_ERR VarLen_Put ( DL_UINT8    iVarLenType,
+						   DL_UINT32   iActLen,
+						   DL_UINT32  *ioReqLen,
+						   DL_UINT8  **ioPtr )
+{
+	DL_ERR    err    = kDL_ERR_NONE;
+	DL_UINT8 *tmpPtr = *ioPtr;
+
+	switch ( iVarLenType )
 	{
-		DL_ERR    err    = kDL_ERR_NONE;
-		DL_UINT8 *tmpPtr = *ioPtr;
+		case kDL_ISO8583_FIXED:
+			// do nothing
+			break;
+		case kDL_ISO8583_LLVAR:
+			iActLen   %= 100;
+			*ioReqLen  = iActLen;
+			*tmpPtr++    = output_bcd_byte(iActLen);
+			break;
+		case kDL_ISO8583_LLLVAR:
+			iActLen   %= 1000;
+			*ioReqLen  = iActLen;
+			*tmpPtr++    = output_bcd_byte(iActLen/100);
+			*tmpPtr++    = output_bcd_byte(iActLen%100);
+			break;
+		case kDL_ISO8583_LLLLVAR:
+			iActLen   %= 10000;
+			*ioReqLen  = iActLen;
+			*tmpPtr++    = output_bcd_byte(iActLen/100);
+			*tmpPtr++    = output_bcd_byte(iActLen%100);
+			break;
+		default:
+			// [ERROR] unsupported length type
+			err = kDL_ERR_OTHER;
+	} // end-switch
 
-		switch ( iVarLenType )
-		{
-			case kDL_ISO8583_FIXED:
-				// do nothing
-				break;
-			case kDL_ISO8583_LLVAR:
-				iActLen   %= 100;
-				*ioReqLen  = iActLen;
-				*tmpPtr++    = output_bcd_byte(iActLen);
-				break;
-			case kDL_ISO8583_LLLVAR:
-				iActLen   %= 1000;
-				*ioReqLen  = iActLen;
-				*tmpPtr++    = output_bcd_byte(iActLen/100);
-				*tmpPtr++    = output_bcd_byte(iActLen%100);
-				break;
-			case kDL_ISO8583_LLLLVAR:
-				iActLen   %= 10000;
-				*ioReqLen  = iActLen;
-				*tmpPtr++    = output_bcd_byte(iActLen/100);
-				*tmpPtr++    = output_bcd_byte(iActLen%100);
-				break;
-			default:
-				// [ERROR] unsupported length type
-				err = kDL_ERR_OTHER;
-		} // end-switch
+	*ioPtr = tmpPtr;
 
-		*ioPtr = tmpPtr;
+	return err;
+}*/
 
-		return err;
-	}*/
+/******************************************************************************/
 
-	/******************************************************************************/
+// determines variable length element
+/*static DL_ERR VarLen_Get ( const DL_UINT8 **ioPtr,
+						   DL_UINT8         iVarLenDigits,
+						   DL_UINT16        iMaxValue,
+						   DL_UINT16       *oLen )
+{
+	DL_ERR    err    = kDL_ERR_NONE;
+	DL_UINT8 *tmpPtr = (DL_UINT8*)*ioPtr;
 
-	// determines variable length element
-	/*static DL_ERR VarLen_Get ( const DL_UINT8 **ioPtr,
-							   DL_UINT8         iVarLenDigits,
-							   DL_UINT16        iMaxValue,
-							   DL_UINT16       *oLen )
+	// init outputs
+	*oLen = iMaxValue;
+
+	if ( kDL_ISO8583_FIXED != iVarLenDigits )
 	{
-		DL_ERR    err    = kDL_ERR_NONE;
-		DL_UINT8 *tmpPtr = (DL_UINT8*)*ioPtr;
+		*oLen = 0;
 
-		// init outputs
-		*oLen = iMaxValue;
+		if ( iVarLenDigits % 2 )
+			iVarLenDigits++;
 
-		if ( kDL_ISO8583_FIXED != iVarLenDigits )
+		while ( iVarLenDigits > 0 )
 		{
-			*oLen = 0;
+			*oLen = (*oLen * 100) +
+					((((int)(*tmpPtr) >> 4) & 0xf) * 10) +
+					((int)(*tmpPtr) & 0xf);
+			iVarLenDigits -= 2;
+			tmpPtr++;
+		} // end-while
 
-			if ( iVarLenDigits % 2 )
-				iVarLenDigits++;
+		// limit if exceeds max
+		*oLen = MIN(iMaxValue,*oLen);
+	}
 
-			while ( iVarLenDigits > 0 )
-			{
-				*oLen = (*oLen * 100) +
-						((((int)(*tmpPtr) >> 4) & 0xf) * 10) +
-						((int)(*tmpPtr) & 0xf);
-				iVarLenDigits -= 2;
-				tmpPtr++;
-			} // end-while
+	*ioPtr = tmpPtr;
 
-			// limit if exceeds max
-			*oLen = MIN(iMaxValue,*oLen);
-		}
+	return err;
+}*/
 
-		*ioPtr = tmpPtr;
-
-		return err;
-	}*/
-
-	/******************************************************************************/
+/******************************************************************************/
