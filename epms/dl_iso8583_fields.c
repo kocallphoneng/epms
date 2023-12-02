@@ -872,7 +872,7 @@ static DL_ERR VarLen_Get(const DL_UINT8 **ioPtr,
 				sprintf(myLen,"bdfore%d",*oLen);
 				myPal.myPrint->PrintLine(myLen,&merr);
 				//limit if exceeds max*/
-		*oLen = MIN(iMaxValue, *oLen);
+		// *oLen = MIN(iMaxValue, *oLen);
 	}
 
 	memset(myLen, 0x0, sizeof(myLen));
