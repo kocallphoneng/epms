@@ -767,17 +767,17 @@ static DL_ERR VarLen_Put(DL_UINT8 iVarLenType,
 		*tmpPtr++ = Len[2]; // output_bcd_byte(iActLen%100);
 		break;
 	case kDL_ISO8583_LLLLVAR:
-		iActLen %= 10000;
-		*ioReqLen = iActLen;
-		*tmpPtr++ = output_bcd_byte(iActLen / 100);
-		*tmpPtr++ = output_bcd_byte(iActLen % 100);
 		// iActLen %= 10000;
 		// *ioReqLen = iActLen;
-		// sprintf((char *)Len, "%04d", iActLen);
-		// *tmpPtr++ = Len[0];
-		// *tmpPtr++ = Len[1]; // output_bcd_byte(iActLen/100);
-		// *tmpPtr++ = Len[2]; // output_bcd_byte(iActLen%100);
-		// *tmpPtr++ = Len[3]; // output_bcd_byte(iActLen%100);
+		// *tmpPtr++ = output_bcd_byte(iActLen / 100);
+		// *tmpPtr++ = output_bcd_byte(iActLen % 100);
+		iActLen %= 10000;
+		*ioReqLen = iActLen;
+		sprintf((char *)Len, "%04d", iActLen);
+		*tmpPtr++ = Len[0];
+		*tmpPtr++ = Len[1]; // output_bcd_byte(iActLen/100);
+		*tmpPtr++ = Len[2]; // output_bcd_byte(iActLen%100);
+		*tmpPtr++ = Len[3]; // output_bcd_byte(iActLen%100);
 		break;
 	default:
 		/* [ERROR] unsupported length type */
