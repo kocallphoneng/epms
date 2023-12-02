@@ -821,26 +821,26 @@ Java_com_besl_nibss_epms_ISO8583_unpackEPMSISO8583Message(JNIEnv *env, jobject t
                 memcpy(buf, isoMsg.field[j].ptr, isoMsg.field[j].len);
                 cJSON_AddStringToObject(root, "64", buf);
 
-                if (mkey != NULL && strlen(mkey))
-                {
-                    // checking hash verification
-                    memset(rhash, 0, sizeof(rhash));
-                    memcpy(rhash, isoMsg.field[j].ptr, isoMsg.field[j].len);
-                    toUpperCase(rhash);
-                    toUpperCase(chash);
+                // if (mkey != NULL && strlen(mkey))
+                // {
+                //     // checking hash verification
+                //     memset(rhash, 0, sizeof(rhash));
+                //     memcpy(rhash, isoMsg.field[j].ptr, isoMsg.field[j].len);
+                //     toUpperCase(rhash);
+                //     toUpperCase(chash);
 
-                    if (memcmp(chash, rhash, strlen(chash)))
-                    {
-                        // hash failed
-                        /* free ISO message */
-                        DL_ISO8583_MSG_Free(&isoMsg);
+                // if (memcmp(chash, rhash, strlen(chash)))
+                // {
+                //     // hash failed
+                //     /* free ISO message */
+                //     DL_ISO8583_MSG_Free(&isoMsg);
 
-                        output = cJSON_Print(root);
-                        cJSON_Delete(root);
+                //     output = cJSON_Print(root);
+                //     cJSON_Delete(root);
 
-                        // return NULL;
-                    }
-                }
+                //     // return NULL;
+                // }
+                // }
             }
 
             if (j == 65)
