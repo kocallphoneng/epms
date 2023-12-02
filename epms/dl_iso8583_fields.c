@@ -845,7 +845,7 @@ static DL_ERR VarLen_Get(const DL_UINT8 **ioPtr,
 			//	sprintf(myLen,"td %x",*testPtr2);
 			//	myPal.myPrint->PrintLine(myLen,&merr);
 
-			oLen = (((*tmpPtr) - 48) * 1000) + (((*testPtr) - 48) * 100) + ((*testPtr2 * 10) - 48) + ((*testPtr3) - 48);
+			oLen = (((*tmpPtr) - 48) * 1000) + (((*testPtr) - 48) * 100) + (((*testPtr2) - 48) * 10) + ((*testPtr3) - 48);
 
 			//	sprintf(myLen,"tc %x",*oLen);
 			//	myPal.myPrint->PrintLine(myLen,&merr);
