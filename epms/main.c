@@ -279,16 +279,16 @@ Java_com_besl_nibss_epms_ISO8583_packEPMSISO8583Message(JNIEnv *env, jobject thi
     else
     { // secondary bitmap
 
-        if (mkey != NULL && strlen(mkey))
-        {
-            (void)DL_ISO8583_MSG_SetField_Str(128, 0x0, &isoMsg);
+        // if (mkey != NULL && strlen(mkey))
+        // {
+        //     (void)DL_ISO8583_MSG_SetField_Str(128, 0x0, &isoMsg);
 
-            (void)DL_ISO8583_MSG_Pack(&isoHandler, &isoMsg, buf, &bufSize);
+        //     (void)DL_ISO8583_MSG_Pack(&isoHandler, &isoMsg, buf, &bufSize);
 
-            calculateSHA256Hash(buf, bufSize - 64, chash, mkey);
+        //     calculateSHA256Hash(buf, bufSize - 64, chash, mkey);
 
-            (void)DL_ISO8583_MSG_SetField_Str(128, chash, &isoMsg);
-        }
+        //     (void)DL_ISO8583_MSG_SetField_Str(128, chash, &isoMsg);
+        // }
     }
 
     //(*env)->ReleaseStringUTFChars(env,key, mkey);//clear the data from the memory after using
